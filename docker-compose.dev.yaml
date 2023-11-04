@@ -1,0 +1,68 @@
+version: '3'
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+  redis:
+    image: 'redis:latest'
+  # not server (like its dir name), as nginx treats server as special keyword
+  api:
+    depends_on:
+      - postgres
+      - redis
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    volumes:
+      # inside the container, don't override the folder. leave as is
+      - /app/node_modules
+      # redirect any file access withing /app dir to ./worker folder on host fs
+      - ./server:/app
+    environment:
+      # redis defaults
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # postgres settings set further up
+      - PGUSER=postgres
+      - PGDATABASE=postgres
+      - PGPASSWORD=postgres
+      # host name in internal docker network (equals service name)
+      - PGHOST=postgres
+      # postgres
+      - PGPORT=5432
+  worker:
+    depends_on:
+      - postgres
+      - redis
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./worker
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+  client:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./client
+    volumes:
+      - /app/node_modules
+      - ./worker:/app    - REDIS_PORT=6379
+    environment:
+      - WDS_SOCKET_PORT=0
+  gateway:
+    depends_on:
+      - api
+      - client
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    # only the gateway is exposed to host network
+    ports:
+      - '3050:80'
