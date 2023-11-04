@@ -3,7 +3,7 @@ WORKDIR '/app'
 COPY ./package.json .
 RUN npm i
 COPY . .
-CMD ["npm", "run", "build"]
+RUN npm run build
 
 # first block gets terminated by the following FROM statement
 FROM nginx
