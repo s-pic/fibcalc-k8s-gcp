@@ -28,22 +28,21 @@ jobs:
       - run: docker push geomc/multi-nginx
       - run: docker push geomc/multi-server
       - run: docker push geomc/multi-worker
-# TODO in next step
-#  zip_code_and_deploy_to_ebs:
-#    needs: build_and_push_images
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Generate deployment package
-#        run: zip -r deploy.zip . -x '*.git*'
-#      - name: Deploy to Elastic Beanstalk
-#        uses: einaregilsson/beanstalk-deploy@v18
-#        with:
-#          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-#          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-#          application_name: multi-gh # TODO ADAPT
-#          environment_name: Multigh-env # TODO ADAPT
-#          existing_bucket_name: elasticbeanstalk-us-east-1-923445559289 # TODO ADAPT
-#          region: us-east-1
-#          version_label: ${{ github.sha }}
-#          deployment_package: deploy.zip
+  zip_code_and_deploy_to_ebs:
+    needs: build_and_push_images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: multicontainer
+          environment_name: Multicontainer-env
+          existing_bucket_name: elasticbeanstalk-eu-central-1-761478465753
+          region: eu-central-1
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
