@@ -14,10 +14,7 @@ const pgClient = new pg.Pool({
     database: connectionSettings.pgDatabase,
     password: connectionSettings.pgPassword,
     port: connectionSettings.pgPort,
-    ssl:
-        process.env.NODE_ENV !== 'production'
-            ? false
-            : {rejectUnauthorized: false},
+    ssl: {rejectUnauthorized: false},
 })
 
 pgClient.on("error", (errDetails) => console.error("Lost PG connection", errDetails));
