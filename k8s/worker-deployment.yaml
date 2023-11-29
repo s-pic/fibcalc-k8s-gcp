@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      component: worker
+  template:
+    metadata:
+      labels:
+        component: worker
+    spec:
+      containers:
+        - name: worker
+          image: geomc/multi-worker
+          env:
+            - name: REDIS_HOST
+              # same value as specced in redis-cluster-ip-service meta data
+              value: redis-cluster-ip-service
+            - name: REDIS_PORT
+              # same port as specced in redis-cluster-ip-service
+              value: "6379"

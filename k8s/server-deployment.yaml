@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      component: server
+  template:
+    metadata:
+      labels:
+        component: server
+    spec:
+      containers:
+        - name: server
+          # no nerve to debug why my image is off, use course image for now
+          image: rallycoding/multi-server
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              # same value as specced in redis-cluster-ip-service meta data
+              value: redis-cluster-ip-service
+            - name: REDIS_PORT
+              # same port as specced in redis-cluster-ip-service
+              value: "6379"
+            - name: PGUSER
+              # default user. should normally be adapted when following good practise.
+              # also we should rather use a secret, but for learning purposes we will only
+              # stick the pw in a secret
+              value: postgres
+            - name: PGDATABASE
+              # default database. should normally be adapted when following good practise
+              value: postgres
+            - name: PGHOST
+              value: postgres-cluster-ip-service
+            - name: PGPORT
+              # same value as specced in postgres-cluster-ip-service
+              value: "5432"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fibcalcdb
+                  key: PGPASSWORD
+

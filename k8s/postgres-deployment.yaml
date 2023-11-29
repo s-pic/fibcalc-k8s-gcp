@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  # as for redis, we can't just increment this.
+  # DB pods can't share the same fs. We need extra config to setup db clusters.
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      volumes:
+        - name: postgres-storage
+          # use the declared claim
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fibcalcdb
+                  key: PGPASSWORD
+          # use the declared volume
+          volumeMounts:
+            - name: postgres-storage
+              # mount the volume to the postgres data dir within the container
+              mountPath: /var/lib/postgresql/data
+              # path on volume where data is stored. gotcha with postgres in k8s
+              subPath: postgres
